@@ -1,0 +1,115 @@
+{% load static i18n compress%}<!DOCTYPE html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <title>{% block title %}Vocie Pix Chat with Automatic Reply by AI{% endblock title %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="VoicePixChat - Revolutionizing Conversations with AI Magic. VPChat(Voice Pix Chat) is an innovative chat application that brings a new level of excitement and convenience to your conversations. With VPchat, you'll experience the power of artificial intelligence (AI) in real-time as it automates various aspects of your chat experience. Imagine having an intelligent chatbot by your side, seamlessly replying to messages on your behalf. VPChat's AI-powered ChatGPT engine ensures that your friends and contacts receive timely responses even when you're busy or away. This auto-reply feature saves you time and keeps the conversation flowing effortlessly. But that's not all! VPChat goes beyond text-based communication. It converts text messages into captivating speech, enabling you to enjoy a hands-free chat experience. Simply listen to the voice of your messages as they come alive, making conversations more engaging and interactive. VPChat also introduces an exciting feature where it generates new images based on AI algorithms. Surprise your friends with stunning, AI-generated images tailored to your conversations. From adorable animal illustrations to mesmerizing landscapes, these AI creations add an artistic touch to your chat threads, sparking creativity and wonder. Furthermore, VPChat recognizes the importance of emojis in modern communication. That's why we've created a platform where users can contribute their own unique emojis. Express your emotions like never before with a vast collection of custom emojis, created and shared by the VPChat community. The possibilities for personal expression are endless! With VPChat, you'll enjoy a dynamic chat experience that combines the intelligence of AI with the joy of creative expression. Stay connected, enhance conversations, and unlock a world of possibilities with VPChat - where every chat is an enchanting journey. So, join us on this exciting adventure and let VPChat transform the way you chat and connect with others. Get ready to experience a new era of communication filled with auto-replies, voice messages, AI-generated images, and a vibrant emoji community. Embrace the magic of VPChat today!">
+    <meta name="author" content="Oleksandr Koniaiev">
+
+    <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
+
+    {% block css %}
+    <!-- Latest compiled and minified Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css" integrity="sha512-SbiR/eusphKoMVVXysTKG/7VseWii+Y3FdHrt0EpKgpToZeemhqHeZeLWLhJutz/2ut2Vw1uQEj2MbRF+TVBUA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Your stuff: Third-party CSS libraries go here -->
+
+    <!-- This file stores project-specific CSS -->
+    {% compress css %}
+    <link href="{% static 'css/project.css' %}" rel="stylesheet">
+    {% endcompress %}
+    {% endblock %}
+    <!-- Le javascript
+    ================================================== -->
+    {# Placed at the top of the document so pages load faster with defer #}
+    {% block javascript %}
+      <!-- Bootstrap JS -->
+      <script defer src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js" integrity="sha512-1/RvZTcCDEUjY/CypiMz+iqqtaoQfAITmNSJY17Myp4Ms5mdxPS5UV7iOfdZoxcGhzFbOm6sntTKJppjvuhg4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+      <!-- Your stuff: Third-party javascript libraries go here -->
+
+      <!-- place project specific Javascript in this file -->
+      {% compress js %}
+      <script defer src="{% static 'js/project.js' %}"></script>
+      {% endcompress %}
+
+    {% endblock javascript %}
+
+  </head>
+
+  <body>
+
+    <div class="mb-1">
+      <nav class="navbar navbar-expand-md navbar-light bg-light">
+        <div class="container-fluid">
+          <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <a class="navbar-brand" href="{% url 'home' %}">Vocie Pix Chat with Automatic Reply by AI</a>
+
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item active">
+                <a class="nav-link" href="{% url 'home' %}">Home <span class="visually-hidden">(current)</span></a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'about' %}">About</a>
+              </li>
+              {% if request.user.is_authenticated %}
+                <li class="nav-item">
+                  <a class="nav-link" href="{% url 'users:detail' request.user.pk %}">{% translate "My Profile" %}</a>
+                </li>
+                <li class="nav-item">
+                  {# URL provided by django-allauth/account/urls.py #}
+                  <a class="nav-link" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
+                </li>
+              {% else %}
+                {% if ACCOUNT_ALLOW_REGISTRATION %}
+              <li class="nav-item">
+                {# URL provided by django-allauth/account/urls.py #}
+                <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}">{% translate "Sign Up" %}</a>
+              </li>
+              {% endif %}
+                <li class="nav-item">
+                  {# URL provided by django-allauth/account/urls.py #}
+                  <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
+                </li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </nav>
+
+    </div>
+
+    <div class="container">
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+
+      {% block content %}
+        <p>Use this document as a way to quick start any new project.</p>
+      {% endblock content %}
+
+    </div> <!-- /container -->
+
+    {% block modal %}{% endblock modal %}
+
+    {% block inline_javascript %}
+    {% comment %}
+    Script tags with only code, no src (defer by default). To run
+    with a "defer" so that you run inline code:
+    <script>
+      window.addEventListener('DOMContentLoaded', () => {/* Run whatever you want */});
+    </script>
+    {% endcomment %}
+    {% endblock inline_javascript %}
+  </body>
+</html>
