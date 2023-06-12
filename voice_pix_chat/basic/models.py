@@ -4,8 +4,8 @@ from django.db import models
 
 
 class AutoDate:
-    created_date = models.DateTimeField(auto_now_add=True)
-    updated_date = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 class Plan(models.Model, AutoDate):
