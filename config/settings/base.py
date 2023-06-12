@@ -84,6 +84,8 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "voice_pix_chat.users",
+    "voice_pix_chat.basic",
+    "voice_pix_chat.chat",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
