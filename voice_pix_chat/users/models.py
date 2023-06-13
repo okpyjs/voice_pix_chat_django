@@ -1,6 +1,6 @@
 from basic.models import AutoDate, Plan
 from django.contrib.auth.models import AbstractUser
-from django.db.models import SET_NULL, CharField, DateTimeField, EmailField, ForeignKey
+from django.db.models import SET_NULL, BooleanField, CharField, DateTimeField, EmailField, ForeignKey
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
@@ -22,6 +22,7 @@ class User(AbstractUser, AutoDate):
     username = CharField(max_length=255, blank=True, null=True)  # type: ignore
 
     # custom field
+    mail_verify = BooleanField(default=False)
     avatar_url = CharField(max_length=1000, blank=True, null=True)
     plan = ForeignKey(Plan, on_delete=SET_NULL, blank=True, null=True)
     last_seen = DateTimeField(blank=True, null=True)
