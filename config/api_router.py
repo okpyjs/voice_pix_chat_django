@@ -9,6 +9,7 @@ from voice_pix_chat.users.api.views import (
     MailVerify,
     RegisterView,
     ReSendMailVerifyCodeView,
+    ResetPasswordView,
     UserViewSet,
 )
 
@@ -26,6 +27,7 @@ api_urls = [
     path("mail-verify/", view=MailVerify.as_view(), name="mail-verify"),
     path("resend-mail-verify/", view=ReSendMailVerifyCodeView.as_view(), name="resend-mail-verify"),
     path("logout/", view=LogoutView.as_view(), name="logout"),
+    path("reset-password/", view=ResetPasswordView.as_view(), name="logout"),
 ]
 
 
