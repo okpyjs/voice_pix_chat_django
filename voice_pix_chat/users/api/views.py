@@ -1,6 +1,12 @@
+import os
 import random
+import string
 import time
+import uuid
 
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
@@ -18,9 +24,14 @@ from .serializers import UserSerializer
 
 User = get_user_model()
 
+# Generate encryption key
+encryption_key = Fernet.generate_key()
+cipher_suite = Fernet(encryption_key)
+
 
 class Base:
     mail_verify_code_list = []
+    password_reset_info_list = []
 
 
 def send_mail_verify_code(email, random_num):
@@ -34,7 +45,7 @@ def send_mail_verify_code(email, random_num):
         "apikey": "14AA590CAA2F38AD5223327ED4B742748464322A8DF1817600D518DA104A1D56170C042D98928AD687B03B683F35E6E8",
         "from": "sg.pythondev@gmail.com",
         "to": email,
-        "subject": "Email Verify - Parakeet Account",
+        "subject": "Email Verify - VPChat Account",
         "body": f"{random_num}",
         "isTransactional": True,
     }
@@ -136,6 +147,7 @@ class LoginView(APIView):
                             "type": "error",
                             "message": "User does not exist.",
                         },
+                        "navigate": "/register",
                         "result": None,
                     },
                     status=400,
@@ -359,4 +371,102 @@ class MailVerify(APIView):
                     "navigate": "reload",
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+def encrypt_email(email, secret_key):
+    cipher_suite = Fernet(secret_key)
+    encrypted_email = cipher_suite.encrypt(email.encode()).decode()
+    return encrypted_email
+
+
+def decrypt_email(encrypted_email, secret_key):
+    cipher_suite = Fernet(secret_key)
+    email = cipher_suite.decrypt(encrypted_email.encode()).decode()
+    return email
+
+
+class ResetPasswordView(APIView):
+    permission_classes = (AllowAny,)
+    authentication_classes = ()
+
+    def get(self, request):
+        email = request.query_params.get("email")
+        try:
+            user = User.objects.get(email=email)
+        except:
+            return Response(
+                {
+                    "status": {"type": "error", "message": "The email address you entered is not registered."},
+                    "navigate": "/register",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            # Generate a secret key
+            secret_key = Fernet.generate_key()
+            encrypted_email = encrypt_email(email, secret_key)
+            reset_url = f"{os.getenv('FRONT_URL')}/reset-password?token={encrypted_email}"
+            Base.password_reset_info_list.append(secret_key)
+            print(reset_url)
+            send_mail_verify_code(email, reset_url)
+            return Response(
+                {
+                    "status": {
+                        "type": "success",
+                        "message": "A password reset link has been sent to your registered email address.",
+                    },
+                },
+                status=status.HTTP_200_OK,
+            )
+        except:  # noqa
+            return Response(
+                {
+                    "status": {"type": "error", "message": "Sorry, an internal server error occurred."},
+                    "navigate": "/login",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    def post(self, request):
+        token = request.data.get("token")
+        password = request.data.get("password")
+        # descrypt token to get email
+        email = None
+        for secret_key in Base.password_reset_info_list:
+            try:
+                email = decrypt_email(token, secret_key)
+                break
+            except:  # noqa
+                continue
+
+        if not email:
+            return Response(
+                {
+                    "status": {"type": "error", "message": "Verification time has exceeded. Please try again."},
+                    "navigate": "/login",
+                }
+            )
+
+        try:
+            user = User.objects.get(email=email)
+            user.set_password(password)
+            user.save()
+            return Response(
+                {
+                    "status": {
+                        "type": "success",
+                        "message": "Your password has been reset successfully. You can now log in with your new password.",
+                    },
+                    "navigate": "/login",
+                }
+            )
+        except:
+            return Response(
+                {
+                    "status": {"type": "error", "message": "The email address you entered is not registered."},
+                    "navigate": "/register",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
